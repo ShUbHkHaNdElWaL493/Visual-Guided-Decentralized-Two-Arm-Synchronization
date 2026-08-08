@@ -1,0 +1,38 @@
+name: ROS2 CI
+
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v6
+
+    - name: Conditionally remove GPU requirements for CI
+      run: |
+        yq -i 'del(.services.vgdtas.deploy)' docker-compose.yaml
+        yq -i 'del(.services.vgdtas.privileged)' docker-compose.yaml
+
+    - name: Build and run Docker container
+      run: docker compose up --build -d
+
+    - name: Run colcon test
+      run: docker exec vgdtas bash -c "
+          source /opt/ros/jazzy/setup.bash &&
+          source /vgdtas/install/setup.bash &&
+          colcon test &&
+          colcon test-result --all
+        "
+
+    - name: Clean up container
+      if: always()
+      run: docker compose down
