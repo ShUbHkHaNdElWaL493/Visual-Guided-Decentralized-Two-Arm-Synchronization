@@ -7,7 +7,6 @@ on:
   pull_request:
     branches:
       - main
-      - dev
   workflow_dispatch:
 
 jobs:
@@ -28,6 +27,7 @@ jobs:
     - name: Run colcon test
       run: docker exec vgdtas bash -c "
           source /opt/ros/jazzy/setup.bash &&
+          colcon build &&
           source /vgdtas/install/setup.bash &&
           colcon test &&
           colcon test-result --all
