@@ -139,7 +139,7 @@
   <joint name="ur_table_joint" type="fixed">
     <parent link="vgdtas_system_base"/>
     <child link="ur_table"/>
-    <origin rpy="0 0 0" xyz="0.6 0 0"/>
+    <origin rpy="0 0 0" xyz="0.7 0 0"/>
   </joint>
   <gazebo reference="ur_table">
     <material>Gazebo/Wood</material>
@@ -909,7 +909,7 @@
   <joint name="fer_table_joint" type="fixed">
     <parent link="vgdtas_system_base"/>
     <child link="fer_table"/>
-    <origin rpy="0 0 0" xyz="-0.6 0 0"/>
+    <origin rpy="0 0 0" xyz="-0.7 0 0"/>
   </joint>
   <gazebo reference="fer_table">
     <material>Gazebo/Wood</material>
