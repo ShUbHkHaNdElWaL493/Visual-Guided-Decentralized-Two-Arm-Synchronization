@@ -54,7 +54,7 @@ def generate_launch_description():
                 'moveit_servo': ParameterBuilder('vgdtas_moveit_config')
                 .yaml('config/fer_servo.yaml')
                 .to_dict(),
-                'update_period': 0.01,
+                'update_period': 0.005,
                 'planning_group_name': 'fer_arm',
                 'use_sim_time': True
             },

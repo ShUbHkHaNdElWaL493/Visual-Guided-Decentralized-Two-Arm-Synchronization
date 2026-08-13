@@ -4,7 +4,7 @@
 use_gazebo: true
 
 ## Properties of outgoing commands
-publish_period: 0.01  # 1/Nominal publish rate [seconds]
+publish_period: 0.005  # 1/Nominal publish rate [seconds]
 max_expected_latency: 0.1  # delay between sending a command and the robot executing it [seconds]
 
 command_in_type: "speed_units"  # "unitless"> in the range [-1:1], as if from joystick. "speed_units"> cmds are in m/s and rad/s
@@ -15,12 +15,11 @@ scale:
   joint: 0.5 # Max joint angular/linear velocity. Only used for joint commands on joint_command_in_topic.
 
 # What type of topic does your robot driver expect?
-# Currently supported are std_msgs/Float64MultiArray or trajectory_msgs/JointTrajectory
 command_out_type: trajectory_msgs/JointTrajectory # std_msgs/Float64MultiArray
 
 # What to publish? Can save some bandwidth as most robots only require positions or velocities
 publish_joint_positions: true
-publish_joint_velocities: true
+publish_joint_velocities: false
 publish_joint_accelerations: false
 
 ## Plugins for smoothing outgoing commands
@@ -36,6 +35,7 @@ check_octomap_collisions: false  # Check collision against the octomap (if a 3D 
 
 ## MoveIt properties
 move_group_name: fer_arm  # Often 'manipulator' or 'arm'
+ee_frame_name: "fer_link8"
 robot_link_command_frame: "world"
 
 ## Configure handling of singularities and joint limits
@@ -49,8 +49,8 @@ joint_limit_margins: [0.12]
 
 ## Topic names
 cartesian_command_in_topic: ~/delta_twist_cmds  # Topic for incoming cartesian twist commands
-linear_proportional_gain: 2.0 # Proportional gain for X, Y, Z
-rotational_proportional_gain: 1.0 # Proportional gain for Roll, Pitch, Yaw
+linear_proportional_gain: 1.0 # Proportional gain for X, Y, Z
+rotational_proportional_gain: 0.5 # Proportional gain for Roll, Pitch, Yaw
 joint_command_in_topic: ~/delta_joint_cmds  # Topic for incoming joint angle commands
 pose_command_in_topic: ~/pose_target_cmds  # Topic for incoming pose commands
 joint_topic: /joint_states  # Get joint states from this topic

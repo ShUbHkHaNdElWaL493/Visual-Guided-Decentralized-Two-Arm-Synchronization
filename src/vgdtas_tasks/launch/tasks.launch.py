@@ -68,6 +68,12 @@ def generate_launch_description():
     return LaunchDescription([
         RegisterEventHandler(
             OnProcessExit(
+                target_action=switch_servo_command_type_node,
+                on_exit=[ur_pickup_node]
+            )
+        ),
+        RegisterEventHandler(
+            OnProcessExit(
                 target_action=ur_pickup_node,
                 on_exit=[
                     fer_perception_node,
@@ -78,6 +84,5 @@ def generate_launch_description():
                 ]
             )
         ),
-        switch_servo_command_type_node,
-        ur_pickup_node
+        switch_servo_command_type_node
     ])

@@ -17,7 +17,8 @@ class FERPerceptionNode : public rclcpp::Node
 
     private:
 
-        bool offset_calibrated;
+        bool offset_calibrated, filter_initialized;
+        const double filter_alpha;
         float marker_size;
         std::shared_ptr<tf2_ros::Buffer> tf_buffer;
         std::shared_ptr<tf2_ros::TransformListener> tf_listener;
@@ -33,8 +34,8 @@ class FERPerceptionNode : public rclcpp::Node
         rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr camera_info_subscriber;
         rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr image_subscriber;
 
-        tf2::Quaternion offset_orientation;
-        tf2::Vector3 offset_position;
+        tf2::Quaternion offset_orientation, filtered_orientation;
+        tf2::Vector3 offset_position, filtered_position;
 
         void cameraInfoCallback(const sensor_msgs::msg::CameraInfo::SharedPtr msg)
         {
@@ -107,10 +108,14 @@ class FERPerceptionNode : public rclcpp::Node
 
                     try
                     {
-
                         geometry_msgs::msg::PoseStamped pose_in_world;
+                        
+                        // FIX 1: Use the exact image timestamp (msg->header.stamp) instead of TimePointZero.
+                        // We add a small timeout to ensure the TF tree has time to receive the joint states.
                         geometry_msgs::msg::TransformStamped transform_stamped = tf_buffer->lookupTransform(
-                            "world", pose_in_camera.header.frame_id, tf2::TimePointZero
+                            "world", pose_in_camera.header.frame_id,
+                            msg->header.stamp,
+                            rclcpp::Duration::from_nanoseconds(50000000)
                         );
                         tf2::doTransform(pose_in_camera, pose_in_world, transform_stamped);
                         
@@ -119,8 +124,11 @@ class FERPerceptionNode : public rclcpp::Node
 
                         if (!offset_calibrated)
                         {
+                            // FIX 1 (cont): Use image timestamp for calibration as well
                             geometry_msgs::msg::TransformStamped tf_ee = tf_buffer->lookupTransform(
-                                "world", "fer_link8", tf2::TimePointZero
+                                "world", "fer_link8",
+                                msg->header.stamp,
+                                rclcpp::Duration::from_nanoseconds(50000000)
                             );
                             tf2::Transform T_ee;
                             tf2::fromMsg(tf_ee.transform, T_ee);
@@ -132,10 +140,31 @@ class FERPerceptionNode : public rclcpp::Node
                         }
 
                         tf2::Transform T_des = T_base_ur * tf2::Transform(offset_orientation, offset_position);
+
+                        // FIX 2: Apply Exponential Moving Average (EMA) Filter
+                        if (!filter_initialized)
+                        {
+                            filtered_position = T_des.getOrigin();
+                            filtered_orientation = T_des.getRotation();
+                            filter_initialized = true;
+                        }
+                        else
+                        {
+                            // Smooth translation
+                            filtered_position = filtered_position.lerp(T_des.getOrigin(), filter_alpha);
+                            // Smooth rotation (Spherical Linear Interpolation)
+                            filtered_orientation = filtered_orientation.slerp(T_des.getRotation(), filter_alpha);
+                            filtered_orientation.normalize(); // Must normalize after slerping
+                        }
+
+                        tf2::Transform T_des_filtered(filtered_orientation, filtered_position);
+
                         geometry_msgs::msg::PoseStamped pose_msg;
-                        pose_msg.header.stamp = pose_in_world.header.stamp;
+                        // FIX 3: Use the CURRENT time for the outgoing command so MoveIt Servo doesn't reject it as stale
+                        pose_msg.header.stamp = this->now();
                         pose_msg.header.frame_id = "world";
-                        tf2::toMsg(T_des, pose_msg.pose);
+                        tf2::toMsg(T_des_filtered, pose_msg.pose);
+                        
                         pose_publisher->publish(pose_msg);
 
                     }
@@ -174,6 +203,8 @@ class FERPerceptionNode : public rclcpp::Node
         FERPerceptionNode() :
         Node("fer_perception_node"),
         offset_calibrated(false),
+        filter_initialized(false),
+        filter_alpha(0.09),
         marker_size(0.05),
         tf_buffer(std::make_shared<tf2_ros::Buffer>(this->get_clock())),
         tf_listener(std::make_shared<tf2_ros::TransformListener>(*tf_buffer)),
