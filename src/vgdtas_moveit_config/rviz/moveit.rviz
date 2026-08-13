@@ -729,7 +729,7 @@ Visualization Manager:
       State Display Time: 0.05 s
       Task Solution Topic: /solution
       Tasks:
-        target_pickup: 6
+        ur_pickup: 6
       Trail Step Size: 1
       Value: true
     - Alpha: 1
@@ -939,6 +939,143 @@ Visualization Manager:
       Update Interval: 0
       Value: true
       Visual Enabled: true
+    - Class: rviz_default_plugins/TF
+      Enabled: true
+      Filter (blacklist): ""
+      Filter (whitelist): ""
+      Frame Timeout: 15
+      Frames:
+        All Enabled: true
+        fer_camera_link:
+          Value: true
+        fer_link0:
+          Value: true
+        fer_link1:
+          Value: true
+        fer_link2:
+          Value: true
+        fer_link3:
+          Value: true
+        fer_link4:
+          Value: true
+        fer_link5:
+          Value: true
+        fer_link6:
+          Value: true
+        fer_link7:
+          Value: true
+        fer_link8:
+          Value: true
+        fer_table:
+          Value: true
+        ur_aruco_marker_link:
+          Value: true
+        ur_base:
+          Value: true
+        ur_base_link:
+          Value: true
+        ur_base_link_inertia:
+          Value: true
+        ur_flange:
+          Value: true
+        ur_forearm_link:
+          Value: true
+        ur_ft_frame:
+          Value: true
+        ur_gripper_mount_link:
+          Value: true
+        ur_robotiq_85_base_link:
+          Value: true
+        ur_robotiq_85_left_finger_link:
+          Value: true
+        ur_robotiq_85_left_finger_tip_link:
+          Value: true
+        ur_robotiq_85_left_inner_knuckle_link:
+          Value: true
+        ur_robotiq_85_left_knuckle_link:
+          Value: true
+        ur_robotiq_85_right_finger_link:
+          Value: true
+        ur_robotiq_85_right_finger_tip_link:
+          Value: true
+        ur_robotiq_85_right_inner_knuckle_link:
+          Value: true
+        ur_robotiq_85_right_knuckle_link:
+          Value: true
+        ur_shoulder_link:
+          Value: true
+        ur_table:
+          Value: true
+        ur_tool0:
+          Value: true
+        ur_upper_arm_link:
+          Value: true
+        ur_ur_to_robotiq_link:
+          Value: true
+        ur_wrist_1_link:
+          Value: true
+        ur_wrist_2_link:
+          Value: true
+        ur_wrist_3_link:
+          Value: true
+        vgdtas_system_base:
+          Value: true
+        world:
+          Value: true
+      Marker Scale: 1
+      Name: TF
+      Show Arrows: false
+      Show Axes: false
+      Show Names: false
+      Tree:
+        world:
+          vgdtas_system_base:
+            fer_table:
+              fer_link0:
+                fer_link1:
+                  fer_link2:
+                    fer_link3:
+                      fer_link4:
+                        fer_link5:
+                          fer_link6:
+                            fer_link7:
+                              fer_link8:
+                                fer_camera_link:
+                                  {}
+            ur_table:
+              ur_base_link:
+                ur_base:
+                  {}
+                ur_base_link_inertia:
+                  ur_shoulder_link:
+                    ur_upper_arm_link:
+                      ur_forearm_link:
+                        ur_wrist_1_link:
+                          ur_wrist_2_link:
+                            ur_wrist_3_link:
+                              ur_flange:
+                                ur_tool0:
+                                  ur_aruco_marker_link:
+                                    {}
+                                  ur_ur_to_robotiq_link:
+                                    ur_gripper_mount_link:
+                                      ur_robotiq_85_base_link:
+                                        ur_robotiq_85_left_inner_knuckle_link:
+                                          {}
+                                        ur_robotiq_85_left_knuckle_link:
+                                          ur_robotiq_85_left_finger_link:
+                                            ur_robotiq_85_left_finger_tip_link:
+                                              {}
+                                        ur_robotiq_85_right_inner_knuckle_link:
+                                          {}
+                                        ur_robotiq_85_right_knuckle_link:
+                                          ur_robotiq_85_right_finger_link:
+                                            ur_robotiq_85_right_finger_tip_link:
+                                              {}
+                              ur_ft_frame:
+                                {}
+      Update Interval: 0
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48

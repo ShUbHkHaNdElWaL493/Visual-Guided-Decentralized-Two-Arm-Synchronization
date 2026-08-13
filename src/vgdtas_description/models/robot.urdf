@@ -139,7 +139,7 @@
   <joint name="ur_table_joint" type="fixed">
     <parent link="vgdtas_system_base"/>
     <child link="ur_table"/>
-    <origin rpy="0 0 0" xyz="0.6 0 0"/>
+    <origin rpy="0 0 0" xyz="0.7 0 0"/>
   </joint>
   <gazebo reference="ur_table">
     <material>Gazebo/Wood</material>
@@ -391,12 +391,31 @@
     <parent link="ur_flange"/>
     <child link="ur_tool0"/>
   </joint>
+  <link name="ur_aruco_cube_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.05 0.05 0.049"/>
+      </geometry>
+      <material name="red">
+        <color rgba="1.0 0.0 0.0 1.0"/>
+      </material>
+    </visual>
+  </link>
+  <joint name="ur_aruco_cube_joint" type="fixed">
+    <parent link="ur_tool0"/>
+    <child link="ur_aruco_cube_link"/>
+    <origin xyz="0.0 0.0 0.1595" rpy="0.0 0.0 0.0"/>
+  </joint>
   <link name="ur_aruco_marker_link">
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <box size="0.05 0.05 0.05"/>
+        <box size="0.05 0.05 0.001"/>
       </geometry>
+      <material name="red">
+        <color rgba="1.0 0.0 0.0 1.0"/>
+      </material>
     </visual>
   </link>
   <gazebo reference="ur_aruco_marker_link">
@@ -417,9 +436,9 @@
     </visual>
   </gazebo>
   <joint name="ur_aruco_marker_joint" type="fixed">
-    <parent link="ur_tool0"/>
+    <parent link="ur_aruco_cube_link"/>
     <child link="ur_aruco_marker_link"/>
-    <origin xyz="0.0 0.0 0.16" rpy="0.0 0.0 0.0"/>
+    <origin xyz="0.0 0.0 0.025" rpy="0.0 0.0 0.0"/>
   </joint>
   <ros2_control name="ur_ros2_control" type="system">
     <hardware>
@@ -909,7 +928,7 @@
   <joint name="fer_table_joint" type="fixed">
     <parent link="vgdtas_system_base"/>
     <child link="fer_table"/>
-    <origin rpy="0 0 0" xyz="-0.6 0 0"/>
+    <origin rpy="0 0 0" xyz="-0.7 0 0"/>
   </joint>
   <gazebo reference="fer_table">
     <material>Gazebo/Wood</material>
@@ -1156,27 +1175,27 @@
     <origin xyz="0 0 0.015" rpy="0 0 0"/>
   </joint>
   <gazebo reference="fer_camera_link">
-      <sensor name="fer_camera_link" type="camera">
-        <pose> 0 0 0 0 -1.571 0 </pose>
-        <visualize>true</visualize>
-        <update_rate>10</update_rate>
-        <camera>
-          <camera_info_topic>fer_camera_link/camera_info</camera_info_topic>
-          <horizontal_fov>1.089</horizontal_fov>
-          <image>
-            <format>R8G8B8</format>
-            <width>640</width>
-            <height>480</height>
-          </image>
-          <clip>
-            <near>0.02</near>
-            <far>8.0</far>
-          </clip>
-        </camera>
-        <topic>fer_camera_link/image_raw</topic>
-        <gz_frame_id>fer_camera_link</gz_frame_id>
-      </sensor>
-    </gazebo>
+    <sensor name="fer_camera_link" type="camera">
+      <pose> 0 0 0 0 -1.571 0 </pose>
+      <visualize>true</visualize>
+      <update_rate>10</update_rate>
+      <camera>
+        <camera_info_topic>fer_camera_link/camera_info</camera_info_topic>
+        <horizontal_fov>1.089</horizontal_fov>
+        <image>
+          <format>R8G8B8</format>
+          <width>640</width>
+          <height>480</height>
+        </image>
+        <clip>
+          <near>0.02</near>
+          <far>8.0</far>
+        </clip>
+      </camera>
+      <topic>fer_camera_link/image_raw</topic>
+      <gz_frame_id>fer_camera_link</gz_frame_id>
+    </sensor>
+  </gazebo>
   <gazebo reference="fer_joint1">
     <!-- Needed for ODE to output external wrenches on joints -->
     <provideFeedback>true</provideFeedback>
