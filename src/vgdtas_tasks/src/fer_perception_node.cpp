@@ -1,7 +1,6 @@
 #include <cv_bridge/cv_bridge.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <moveit_msgs/srv/servo_command_type.hpp>
-#include <mutex>
 #include <opencv2/aruco.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/camera_info.hpp>
@@ -20,7 +19,6 @@ class FERPerceptionNode : public rclcpp::Node
 
         bool offset_calibrated;
         float marker_size;
-        std::mutex shared_mutex;
         std::shared_ptr<tf2_ros::Buffer> tf_buffer;
         std::shared_ptr<tf2_ros::TransformListener> tf_listener;
         std::vector<cv::Point3f> obj_points;
@@ -74,16 +72,6 @@ class FERPerceptionNode : public rclcpp::Node
             std::vector<std::vector<cv::Point2f>> corners, rejected;
             cv::aruco::detectMarkers(gray, dictionary, corners, ids, detector_params, rejected);
 
-            if (!offset_calibrated)
-            {
-                if (ids.empty())
-                {
-                    RCLCPP_FATAL(this->get_logger(), "fer_peception_node initialization failed.");
-                    rclcpp::shutdown();
-                    return;
-                }
-            }
-
             if (!ids.empty())
             {
                 cv::Mat rvec, tvec;
@@ -134,17 +122,12 @@ class FERPerceptionNode : public rclcpp::Node
                             geometry_msgs::msg::TransformStamped tf_ee = tf_buffer->lookupTransform(
                                 "world", "fer_link8", tf2::TimePointZero
                             );
-
                             tf2::Transform T_ee;
                             tf2::fromMsg(tf_ee.transform, T_ee);
                             tf2::Transform T_offset_calc = T_base_ur.inverse() * T_ee;
-
-                            {
-                                std::lock_guard<std::mutex> lock(shared_mutex);
-                                offset_position = T_offset_calc.getOrigin();
-                                offset_orientation = T_offset_calc.getRotation();
-                                offset_calibrated = true;
-                            }
+                            offset_position = T_offset_calc.getOrigin();
+                            offset_orientation = T_offset_calc.getRotation();
+                            offset_calibrated = true;
                             RCLCPP_INFO(this->get_logger(), "fer_perception_node initialized successfully.");
                         }
 
@@ -174,7 +157,12 @@ class FERPerceptionNode : public rclcpp::Node
             }
             else
             {
-                std::lock_guard<std::mutex> lock(shared_mutex);
+                if (!offset_calibrated)
+                {
+                    RCLCPP_FATAL(this->get_logger(), "fer_peception_node initialization failed.");
+                    rclcpp::shutdown();
+                    return;
+                }
             }
 
             auto annotated_msg = cv_ptr->toImageMsg();
