@@ -6,7 +6,6 @@
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/camera_info.hpp>
 #include <sensor_msgs/msg/image.hpp>
-#include <std_srvs/srv/trigger.hpp>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <tf2_ros/buffer.h>
@@ -19,7 +18,7 @@ class FERPerceptionNode : public rclcpp::Node
 
     private:
 
-        bool marker_visible, offset_calibrated;
+        bool offset_calibrated;
         float marker_size;
         std::mutex shared_mutex;
         std::shared_ptr<tf2_ros::Buffer> tf_buffer;
@@ -35,64 +34,9 @@ class FERPerceptionNode : public rclcpp::Node
         rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr image_publisher;
         rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr camera_info_subscriber;
         rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr image_subscriber;
-        rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr calibrate_offset_service;
 
         tf2::Quaternion offset_orientation;
-        tf2::Transform latest_marker_transform;
         tf2::Vector3 offset_position;
-
-        void calibrateOffsetCallback(
-            const std::shared_ptr<std_srvs::srv::Trigger::Request> /*request*/,
-            std::shared_ptr<std_srvs::srv::Trigger::Response> response
-        )
-        {
-
-            tf2::Transform current_marker_tf;
-            bool valid = false;
-
-            {
-                std::lock_guard<std::mutex> lock(shared_mutex);
-                valid = marker_visible;
-                current_marker_tf = latest_marker_transform;
-            }
-
-            if (!valid)
-            {
-                response->success = false;
-                response->message = "Calibration failed: ArUco marker not visible.";
-                RCLCPP_WARN(this->get_logger(), "%s", response->message.c_str());
-                return;
-            }
-
-            try
-            {
-
-                geometry_msgs::msg::TransformStamped tf_ee = tf_buffer->lookupTransform(
-                    "world", "fer_link8", tf2::TimePointZero
-                );
-
-                tf2::Transform T_ee;
-                tf2::fromMsg(tf_ee.transform, T_ee);
-                tf2::Transform T_offset_calc = current_marker_tf.inverse() * T_ee;
-
-                {
-                    std::lock_guard<std::mutex> lock(shared_mutex);
-                    offset_position = T_offset_calc.getOrigin();
-                    offset_orientation = T_offset_calc.getRotation();
-                    offset_calibrated = true;
-                }
-
-                response->success = true;
-                response->message = "Offset calibrated.";
-                RCLCPP_INFO(this->get_logger(), "%s", response->message.c_str());
-            }
-            catch (const tf2::TransformException & ex)
-            {
-                response->success = false;
-                response->message = std::string("Calibration failed: ") + ex.what();
-                RCLCPP_ERROR(this->get_logger(), "Calibration failed: %s", ex.what());
-            }
-        }
 
         void cameraInfoCallback(const sensor_msgs::msg::CameraInfo::SharedPtr msg)
         {
@@ -130,6 +74,16 @@ class FERPerceptionNode : public rclcpp::Node
             std::vector<std::vector<cv::Point2f>> corners, rejected;
             cv::aruco::detectMarkers(gray, dictionary, corners, ids, detector_params, rejected);
 
+            if (!offset_calibrated)
+            {
+                if (ids.empty())
+                {
+                    RCLCPP_FATAL(this->get_logger(), "fer_peception_node initialization failed.");
+                    rclcpp::shutdown();
+                    return;
+                }
+            }
+
             if (!ids.empty())
             {
                 cv::Mat rvec, tvec;
@@ -137,6 +91,7 @@ class FERPerceptionNode : public rclcpp::Node
                     obj_points, corners[0], camera_matrix, dist_coeffs, 
                     rvec, tvec, false, cv::SOLVEPNP_IPPE_SQUARE
                 );
+
                 if (success)
                 {
 
@@ -174,38 +129,40 @@ class FERPerceptionNode : public rclcpp::Node
                         tf2::Transform T_base_ur;
                         tf2::fromMsg(pose_in_world.pose, T_base_ur);
 
-                        bool should_publish = false;
-                        tf2::Transform T_offset;
+                        if (!offset_calibrated)
                         {
-                            std::lock_guard<std::mutex> lock(shared_mutex);
-                            latest_marker_transform = T_base_ur;
-                            marker_visible = true;
-                            if (offset_calibrated)
+                            geometry_msgs::msg::TransformStamped tf_ee = tf_buffer->lookupTransform(
+                                "world", "fer_link8", tf2::TimePointZero
+                            );
+
+                            tf2::Transform T_ee;
+                            tf2::fromMsg(tf_ee.transform, T_ee);
+                            tf2::Transform T_offset_calc = T_base_ur.inverse() * T_ee;
+
                             {
-                                T_offset = tf2::Transform(offset_orientation, offset_position);
-                                should_publish = true;
+                                std::lock_guard<std::mutex> lock(shared_mutex);
+                                offset_position = T_offset_calc.getOrigin();
+                                offset_orientation = T_offset_calc.getRotation();
+                                offset_calibrated = true;
                             }
+                            RCLCPP_INFO(this->get_logger(), "fer_perception_node initialized successfully.");
                         }
 
-                        if (should_publish)
-                        {
-                            tf2::Transform T_des = T_base_ur * T_offset;
-                            geometry_msgs::msg::PoseStamped pose_msg;
-                            pose_msg.header.stamp = pose_in_world.header.stamp;
-                            pose_msg.header.frame_id = "world";
-                            tf2::toMsg(T_des, pose_msg.pose);
-                            pose_publisher->publish(pose_msg);
-                        }
+                        tf2::Transform T_des = T_base_ur * tf2::Transform(offset_orientation, offset_position);
+                        geometry_msgs::msg::PoseStamped pose_msg;
+                        pose_msg.header.stamp = pose_in_world.header.stamp;
+                        pose_msg.header.frame_id = "world";
+                        tf2::toMsg(T_des, pose_msg.pose);
+                        pose_publisher->publish(pose_msg);
 
                     }
                     catch (const tf2::TransformException & ex)
                     {
                         RCLCPP_WARN_THROTTLE(
-                            this->get_logger(), 
-                            *this->get_clock(), 
-                            1000, 
-                            "Could not transform %s to world: %s", 
-                            pose_in_camera.header.frame_id.c_str(), 
+                            this->get_logger(),
+                            *this->get_clock(),
+                            1000,
+                            "TF lookup error: %s",
                             ex.what()
                         );
                     }
@@ -218,7 +175,6 @@ class FERPerceptionNode : public rclcpp::Node
             else
             {
                 std::lock_guard<std::mutex> lock(shared_mutex);
-                marker_visible = false;
             }
 
             auto annotated_msg = cv_ptr->toImageMsg();
@@ -229,17 +185,12 @@ class FERPerceptionNode : public rclcpp::Node
     public:
         FERPerceptionNode() :
         Node("fer_perception_node"),
-        marker_visible(false),
         offset_calibrated(false),
         marker_size(0.05),
         tf_buffer(std::make_shared<tf2_ros::Buffer>(this->get_clock())),
         tf_listener(std::make_shared<tf2_ros::TransformListener>(*tf_buffer)),
         detector_params(cv::aruco::DetectorParameters::create()),
         dictionary(cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250)),
-        pose_publisher(this->create_publisher<geometry_msgs::msg::PoseStamped>(
-            "/fer_target_pose",
-            10
-        )),
         image_publisher(this->create_publisher<sensor_msgs::msg::Image>(
             "/fer_camera_link/image_annotated",
             10
@@ -253,10 +204,6 @@ class FERPerceptionNode : public rclcpp::Node
             "/fer_camera_link/image_raw",
             10,
             std::bind(&FERPerceptionNode::imageCallback, this, _1)
-        )),
-        calibrate_offset_service(this->create_service<std_srvs::srv::Trigger>(
-            "/fer_calibrate_offset",
-            std::bind(&FERPerceptionNode::calibrateOffsetCallback, this, _1, _2)
         ))
         {
 
@@ -268,12 +215,10 @@ class FERPerceptionNode : public rclcpp::Node
                 cv::Point3f(-half_size, -half_size, 0.0)
             };
 
-            rclcpp::Client<moveit_msgs::srv::ServoCommandType>::SharedPtr command_type_client;
-            command_type_client = this->create_client<moveit_msgs::srv::ServoCommandType>("/servo_node/switch_command_type");
-            command_type_client->wait_for_service();
-            auto request = std::make_shared<moveit_msgs::srv::ServoCommandType::Request>();
-            request->command_type = moveit_msgs::srv::ServoCommandType::Request::POSE;
-            command_type_client->async_send_request(request);
+            pose_publisher = this->create_publisher<geometry_msgs::msg::PoseStamped>(
+                "/servo_node/pose_target_cmds",
+                10
+            );
 
         }
 };

@@ -20,9 +20,6 @@ find_package(tf2 REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 
-add_executable(fer_commander_node src/fer_commander_node.cpp)
-ament_target_dependencies(fer_commander_node geometry_msgs rclcpp tf2_geometry_msgs tf2_ros)
-
 add_executable(fer_perception_node src/fer_perception_node.cpp)
 target_include_directories(fer_perception_node PUBLIC ${OpenCV_INCLUDE_DIRS})
 ament_target_dependencies(fer_perception_node
@@ -50,7 +47,7 @@ install(
 )
 
 install(
-  TARGETS fer_commander_node fer_perception_node ur_loop_node ur_pickup_node
+  TARGETS fer_perception_node ur_loop_node ur_pickup_node
   DESTINATION lib/${PROJECT_NAME}
 )
 
