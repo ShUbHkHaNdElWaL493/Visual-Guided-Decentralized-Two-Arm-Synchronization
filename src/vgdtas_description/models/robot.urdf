@@ -62,12 +62,12 @@
   <link name="vgdtas_system_base"/>
   <link name="ur_table">
     <inertial>
-      <origin rpy="0 0 0" xyz="0 0 0.65"/>
+      <origin rpy="0 0 0" xyz="0 0 0.75"/>
       <mass value="19.0"/>
       <inertia ixx="1.9" ixy="0.0" ixz="0.0" iyy="3.16" iyz="0.0" izz="3.29"/>
     </inertial>
     <visual name="top_visual">
-      <origin rpy="0 0 0" xyz="0 0 0.725"/>
+      <origin rpy="0 0 0" xyz="0 0 0.825"/>
       <geometry>
         <box size="0.8 0.8 0.05"/>
       </geometry>
@@ -76,63 +76,63 @@
       </material>
     </visual>
     <collision name="top_collision">
-      <origin rpy="0 0 0" xyz="0 0 0.725"/>
+      <origin rpy="0 0 0" xyz="0 0 0.825"/>
       <geometry>
         <box size="0.8 0.8 0.05"/>
       </geometry>
     </collision>
     <visual name="leg_1_visual">
-      <origin rpy="0 0 0" xyz="0.35 0.35 0.3625"/>
+      <origin rpy="0 0 0" xyz="0.35 0.35 0.4125"/>
       <geometry>
-        <cylinder length="0.725" radius="0.03"/>
+        <cylinder length="0.825" radius="0.03"/>
       </geometry>
       <material name="metal">
         <color rgba="0.2 0.2 0.2 1.0"/>
       </material>
     </visual>
     <collision name="leg_1_collision">
-      <origin rpy="0 0 0" xyz="0.35 0.35 0.3625"/>
+      <origin rpy="0 0 0" xyz="0.35 0.35 0.4125"/>
       <geometry>
-        <cylinder length="0.725" radius="0.03"/>
+        <cylinder length="0.825" radius="0.03"/>
       </geometry>
     </collision>
     <visual name="leg_2_visual">
-      <origin rpy="0 0 0" xyz="0.35 -0.35 0.3625"/>
+      <origin rpy="0 0 0" xyz="0.35 -0.35 0.4125"/>
       <geometry>
-        <cylinder length="0.725" radius="0.03"/>
+        <cylinder length="0.825" radius="0.03"/>
       </geometry>
       <material name="metal"/>
     </visual>
     <collision name="leg_2_collision">
-      <origin rpy="0 0 0" xyz="0.35 -0.35 0.3625"/>
+      <origin rpy="0 0 0" xyz="0.35 -0.35 0.4125"/>
       <geometry>
-        <cylinder length="0.725" radius="0.03"/>
+        <cylinder length="0.825" radius="0.03"/>
       </geometry>
     </collision>
     <visual name="leg_3_visual">
-      <origin rpy="0 0 0" xyz="-0.35 0.35 0.3625"/>
+      <origin rpy="0 0 0" xyz="-0.35 0.35 0.4125"/>
       <geometry>
-        <cylinder length="0.725" radius="0.03"/>
+        <cylinder length="0.825" radius="0.03"/>
       </geometry>
       <material name="metal"/>
     </visual>
     <collision name="leg_3_collision">
-      <origin rpy="0 0 0" xyz="-0.35 0.35 0.3625"/>
+      <origin rpy="0 0 0" xyz="-0.35 0.35 0.4125"/>
       <geometry>
-        <cylinder length="0.725" radius="0.03"/>
+        <cylinder length="0.825" radius="0.03"/>
       </geometry>
     </collision>
     <visual name="leg_4_visual">
-      <origin rpy="0 0 0" xyz="-0.35 -0.35 0.3625"/>
+      <origin rpy="0 0 0" xyz="-0.35 -0.35 0.4125"/>
       <geometry>
-        <cylinder length="0.725" radius="0.03"/>
+        <cylinder length="0.825" radius="0.03"/>
       </geometry>
       <material name="metal"/>
     </visual>
     <collision name="leg_4_collision">
-      <origin rpy="0 0 0" xyz="-0.35 -0.35 0.3625"/>
+      <origin rpy="0 0 0" xyz="-0.35 -0.35 0.4125"/>
       <geometry>
-        <cylinder length="0.725" radius="0.03"/>
+        <cylinder length="0.825" radius="0.03"/>
       </geometry>
     </collision>
   </link>
@@ -289,7 +289,7 @@
   </link>
   <!-- base_joint fixes base_link to the environment -->
   <joint name="ur_base_joint" type="fixed">
-    <origin rpy="0 0 0" xyz="0 0 0.75"/>
+    <origin rpy="0 0 0" xyz="0 0 0.85"/>
     <parent link="ur_table"/>
     <child link="ur_base_link"/>
   </joint>

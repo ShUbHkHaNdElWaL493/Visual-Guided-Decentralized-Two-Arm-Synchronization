@@ -1,4 +1,3 @@
-#define PLANNING_ATTEMPTS 3
 #include <moveit/move_group_interface/move_group_interface.hpp>
 #include <moveit/planning_scene_interface/planning_scene_interface.hpp>
 #include <moveit/task_constructor/stages/compute_ik.h>
@@ -35,7 +34,7 @@ int main(int argc, char ** argv)
   geometry_msgs::msg::Pose primitive_pose;
   primitive_pose.position.x = 1.0;
   primitive_pose.position.y = 0.3;
-  primitive_pose.position.z = 0.775;
+  primitive_pose.position.z = 0.875;
   primitive_pose.orientation.w = 1.0;
   cube.primitives.push_back(primitive);
   cube.primitive_poses.push_back(primitive_pose);
@@ -43,19 +42,13 @@ int main(int argc, char ** argv)
   moveit::planning_interface::PlanningSceneInterface psi;
   psi.applyCollisionObject(cube);
 
-  geometry_msgs::msg::PoseStamped loop_start_fer, loop_start_ur;
+  geometry_msgs::msg::PoseStamped loop_start_fer;
   loop_start_fer.header.frame_id = "world";
-  loop_start_fer.pose.position.x = -0.2;
+  loop_start_fer.pose.position.x = -0.3;
   loop_start_fer.pose.position.y = 0.2;
-  loop_start_fer.pose.position.z = 1.4;
+  loop_start_fer.pose.position.z = 1.5;
   loop_start_fer.pose.orientation.w = 0.7071;
   loop_start_fer.pose.orientation.y = 0.7071;
-  loop_start_ur.header.frame_id = "world";
-  loop_start_ur.pose.position.x = 0.4;
-  loop_start_ur.pose.position.y = 0.2;
-  loop_start_ur.pose.position.z = 1.4;
-  loop_start_ur.pose.orientation.w = 0.7071;
-  loop_start_ur.pose.orientation.y = -0.7071;
 
   Task pickup_task;
   pickup_task.stages()->setName("ur_pickup");
@@ -252,7 +245,7 @@ int main(int argc, char ** argv)
   {
     auto stage = std::make_unique<stages::MoveTo>("Move to loop_start_ur", sampling_planner);
     stage->setGroup("ur_arm");
-    stage->setGoal(loop_start_ur);
+    stage->setGoal("loop_start");
     pickup_task.add(std::move(stage));
   }
 
@@ -275,11 +268,11 @@ int main(int argc, char ** argv)
     RCLCPP_ERROR(node->get_logger(), "pickup_task initialization failed.");
     return -1;
   }
-  for (int i = 0; (i < PLANNING_ATTEMPTS); i++) {
+  while (pickup_task.solutions().empty()) {
     pickup_task.plan();
-  }
-  if (pickup_task.solutions().empty()) {
-    RCLCPP_ERROR(node->get_logger(), "pickup_task planning failed.");
+    if (pickup_task.solutions().empty()) {
+      RCLCPP_ERROR(node->get_logger(), "pickup_task planning failed.");
+    }
   }
   auto pickup_task_result = pickup_task.execute(*(pickup_task.solutions().front()));
   if (pickup_task_result.val != moveit_msgs::msg::MoveItErrorCodes::SUCCESS) {

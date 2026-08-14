@@ -18,6 +18,7 @@ class FERPerceptionNode : public rclcpp::Node
 private:
   bool offset_calibrated, filter_initialized;
   const double filter_alpha;
+  double initial_ee_x;
   float marker_size;
   std::shared_ptr<tf2_ros::Buffer> tf_buffer;
   std::shared_ptr<tf2_ros::TransformListener> tf_listener;
@@ -33,8 +34,8 @@ private:
   rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr camera_info_subscriber;
   rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr image_subscriber;
 
-  tf2::Quaternion offset_orientation, filtered_orientation;
-  tf2::Vector3 offset_position, filtered_position;
+  tf2::Quaternion initial_ee_orientation;
+  tf2::Vector3 world_offset_position, filtered_position;
 
   void cameraInfoCallback(const sensor_msgs::msg::CameraInfo::SharedPtr msg)
   {
@@ -92,9 +93,9 @@ private:
         auto pose_in_camera = geometry_msgs::msg::PoseStamped();
         pose_in_camera.header.stamp = msg->header.stamp;
         pose_in_camera.header.frame_id = msg->header.frame_id;
-        pose_in_camera.pose.position.x = tvec.at<double>(0);
-        pose_in_camera.pose.position.y = tvec.at<double>(1);
-        pose_in_camera.pose.position.z = tvec.at<double>(2);
+        pose_in_camera.pose.position.x = tvec.at<double>(1);
+        pose_in_camera.pose.position.y = -tvec.at<double>(0);
+        pose_in_camera.pose.position.z = -tvec.at<double>(2);
         pose_in_camera.pose.orientation.x = q.x();
         pose_in_camera.pose.orientation.y = q.y();
         pose_in_camera.pose.orientation.z = q.z();
@@ -115,32 +116,33 @@ private:
 
           if (!offset_calibrated) {
             geometry_msgs::msg::TransformStamped tf_ee = tf_buffer->lookupTransform(
-                                "world", "fer_link8",
-                                msg->header.stamp,
-                                rclcpp::Duration::from_nanoseconds(50000000)
+                              "world", "fer_link8",
+                              msg->header.stamp,
+                              rclcpp::Duration::from_nanoseconds(50000000)
             );
             tf2::Transform T_ee;
             tf2::fromMsg(tf_ee.transform, T_ee);
-            tf2::Transform T_offset_calc = T_base_ur.inverse() * T_ee;
-            offset_position = T_offset_calc.getOrigin();
-            offset_orientation = T_offset_calc.getRotation();
+
+            initial_ee_x = T_ee.getOrigin().x();
+            initial_ee_orientation = T_ee.getRotation();
+            world_offset_position = T_ee.getOrigin() - T_base_ur.getOrigin();
+
             offset_calibrated = true;
-            RCLCPP_INFO(this->get_logger(), "fer_perception_node initialized successfully.");
+            RCLCPP_INFO(this->get_logger(),
+              "fer_perception_node initialized successfully. Orientation locked.");
           }
 
-          tf2::Transform T_des = T_base_ur * tf2::Transform(offset_orientation, offset_position);
+          tf2::Vector3 target_position = T_base_ur.getOrigin() + world_offset_position;
 
           if (!filter_initialized) {
-            filtered_position = T_des.getOrigin();
-            filtered_orientation = T_des.getRotation();
+            filtered_position = target_position;
             filter_initialized = true;
           } else {
-            filtered_position = filtered_position.lerp(T_des.getOrigin(), filter_alpha);
-            filtered_orientation = filtered_orientation.slerp(T_des.getRotation(), filter_alpha);
-            filtered_orientation.normalize();
+            filtered_position = filtered_position.lerp(target_position, filter_alpha);
           }
+          filtered_position.setX(initial_ee_x);
 
-          tf2::Transform T_des_filtered(filtered_orientation, filtered_position);
+          tf2::Transform T_des_filtered(initial_ee_orientation, filtered_position);
 
           geometry_msgs::msg::PoseStamped pose_msg;
           pose_msg.header.stamp = this->now();
@@ -181,7 +183,7 @@ public:
   :Node("fer_perception_node"),
     offset_calibrated(false),
     filter_initialized(false),
-    filter_alpha(0.09),
+    filter_alpha(0.1),
     marker_size(0.05),
     tf_buffer(std::make_shared<tf2_ros::Buffer>(this->get_clock())),
     tf_listener(std::make_shared<tf2_ros::TransformListener>(*tf_buffer)),
