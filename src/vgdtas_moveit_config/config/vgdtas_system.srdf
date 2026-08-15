@@ -40,6 +40,14 @@
         <joint name="ur_wrist_2_joint" value="0"/>
         <joint name="ur_wrist_3_joint" value="0"/>
     </group_state>
+    <group_state name="loop_start" group="ur_arm">
+        <joint name="ur_elbow_joint" value="1.9443824291229248"/>
+        <joint name="ur_shoulder_lift_joint" value="-1.9119946956634521"/>
+        <joint name="ur_shoulder_pan_joint" value="1.8669787645339966"/>
+        <joint name="ur_wrist_1_joint" value="-3.173980236053467"/>
+        <joint name="ur_wrist_2_joint" value="-0.29618194699287415"/>
+        <joint name="ur_wrist_3_joint" value="-1.5707968473434448"/>
+    </group_state>
     <group_state name="open" group="ur_gripper">
         <joint name="ur_robotiq_85_left_knuckle_joint" value="0"/>
     </group_state>
