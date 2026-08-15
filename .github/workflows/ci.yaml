@@ -27,7 +27,7 @@ jobs:
     - name: Run colcon test
       run: docker exec vgdtas bash -c "
           source /opt/ros/jazzy/setup.bash &&
-          colcon build &&
+          source /franka/install/setup.bash &&
           source /vgdtas/install/setup.bash &&
           colcon test &&
           colcon test-result --all

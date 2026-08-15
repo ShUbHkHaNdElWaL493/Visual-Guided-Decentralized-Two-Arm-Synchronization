@@ -30,11 +30,13 @@ RUN mkdir -p src && \
 
 RUN source /opt/ros/jazzy/setup.bash && colcon build
 
+WORKDIR /vgdtas
+COPY ./src /vgdtas/src
+RUN source /opt/ros/jazzy/setup.bash && source /franka/install/setup.bash && colcon build
+
 RUN echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
 RUN echo "source /franka/install/setup.bash" >> ~/.bashrc
 RUN echo "source /vgdtas/install/setup.bash" >> ~/.bashrc
 RUN echo "export GZ_SIM_RESOURCE_PATH=\$GZ_SIM_RESOURCE_PATH:/vgdtas/install/vgdtas_description/share" >> ~/.bashrc
-
-WORKDIR /vgdtas
 
 CMD ["bash"]
