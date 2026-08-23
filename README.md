@@ -51,9 +51,20 @@ The following things have been done:
 
 ## Implementation
 
-<div align="left">
+<div align="center">
     <figure>
-    <img src="./src/vgdtas_description/models/textures/aruco_marker.png" alt="Aruco marker" width="100">
-    <figcaption><em>Aruco marker</em></figcaption>
+    <img src="./public/scene.gif" alt="Scene" width="1000">
+    <figcaption><em>Scene</em></figcaption>
+    </figure>
+</div>
+
+<div style="text-align: center;">
+    <figure style="display: inline-block; vertical-align: top; margin-right: 20px;">
+        <img src="./public/camera.gif" alt="Camera" width="500">
+        <figcaption><em>Camera</em></figcaption>
+    </figure>
+    <figure style="display: inline-block; vertical-align: top;">
+        <img src="./src/vgdtas_description/models/textures/aruco_marker.png" alt="Aruco marker" width="200">
+        <figcaption><em>Aruco marker</em></figcaption>
     </figure>
 </div>
