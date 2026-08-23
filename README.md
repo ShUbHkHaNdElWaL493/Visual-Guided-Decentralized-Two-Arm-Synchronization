@@ -60,7 +60,7 @@ The following things have been done:
 
 <div style="text-align: center;">
     <figure style="display: inline-block; vertical-align: top; margin-right: 20px;">
-        <img src="./public/camera.gif" alt="Camera" width="500">
+        <img src="./public/camera.gif" alt="Camera" width="400">
         <figcaption><em>Camera</em></figcaption>
     </figure>
     <figure style="display: inline-block; vertical-align: top;">
