@@ -1,6 +1,6 @@
 # Dual Arm Position-based Visual Servoing
 
-This project aims to create a dual arm system comprising of a UR5e and an FER manipulator. The UR5e picks up a target object with an Aruco marker and moves it in a continuous loop while the FER keeps a constant relative pose with the target object using eye-in-hand pose tracking.
+This project aims to create a dual arm system comprising of a UR5e and an FER manipulator. The UR5e picks up a target object with an ArUco marker and moves it in a continuous loop while the FER keeps a constant relative pose with the target object using eye-in-hand pose tracking.
 
 ---
 
@@ -8,9 +8,9 @@ This project aims to create a dual arm system comprising of a UR5e and an FER ma
 
 - **Docker:** For easier operability on different devices
 - **Github Actions:** For checking builds
-- **Gazebo Sim Harmonic:** Used for simulating the robots as well as the Aruco marker
+- **Gazebo Sim Harmonic:** Used for simulating the robots as well as the ArUco marker
 - **Moveit2:** For motion planning and inverse kinematics
-- **OpenCV:** For Aruco marker detection
+- **OpenCV:** For ArUco marker detection
 - **ROS2 Jazzy Jalisco:** Used as the communication framework
 
 ---
@@ -44,7 +44,7 @@ The following steps need to be performed:
 ## Progress
 The following things have been done:
 1. The Moveit and Moveit Servo nodes operate perfectly, ensuring no issue in command generation and forwarding.
-2. The tasks execute perfectly with the eye-in-hand pose tracking working correctly for FER with the Aruco marker.
+2. The tasks execute perfectly with the eye-in-hand pose tracking working correctly for FER with the ArUco marker.
 3. The target pose generation algorithm works perfectly when the motion is in a 2-D plane but fails in the x-axis due to an inaccurate frame of reference. This is due to a change in the frame of reference during creation of the Gazebo camera.
 
 ---
@@ -64,7 +64,7 @@ The following things have been done:
         <figcaption><em>Camera</em></figcaption>
     </figure>
     <figure style="display: inline-block; vertical-align: top;">
-        <img src="./src/vgdtas_description/models/textures/aruco_marker.png" alt="Aruco marker" width="200">
-        <figcaption><em>Aruco marker</em></figcaption>
+        <img src="./src/vgdtas_description/models/textures/arUco_marker.png" alt="ArUco marker" width="200">
+        <figcaption><em>ArUco marker</em></figcaption>
     </figure>
 </div>
