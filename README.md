@@ -64,7 +64,7 @@ The following things have been done:
         <figcaption><em>Camera</em></figcaption>
     </figure>
     <figure style="display: inline-block; vertical-align: top;">
-        <img src="./src/vgdtas_description/models/textures/arUco_marker.png" alt="ArUco marker" width="200">
+        <img src="./src/vgdtas_description/models/textures/aruco_marker.png" alt="ArUco marker" width="200">
         <figcaption><em>ArUco marker</em></figcaption>
     </figure>
 </div>
